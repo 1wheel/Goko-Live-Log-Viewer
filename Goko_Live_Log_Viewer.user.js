@@ -9,8 +9,18 @@ $(document).ready(function() { var hook = function() {
 	var newLogMode = -1;
 	var newLogPlayers = 0;
 	var newLogNames = {};
+
+	var $pointTracker = $('<div id="rc-point-tracker"></div>').appendTo($('#goko-game'));
+
+	var decks = {},
+		points = {};
+
+	window.points_debug = points;
+	window.decks_debug = decks;
+
 	newLog.setAttribute("class", "newlog");
-	document.getElementById("goko-game").appendChild(newLog);
+	document.getElementById("goko-game").appendChild(newLog);	
+
 	Dom.LogManager.prototype.old_addLog = Dom.LogManager.prototype.addLog;
 	Dom.LogManager.prototype.addLog = function (opt) {
 	    if (opt.logUrl) {
@@ -30,6 +40,8 @@ $(document).ready(function() { var hook = function() {
 						newLogMode = 0;
 						newLogPlayers = 0;
 						newLogNames = {};
+						decks = {};
+						points = {};
 					} 
 					else {
 						newLogMode = -1;
@@ -39,12 +51,28 @@ $(document).ready(function() { var hook = function() {
 			} 
 			else {
 			    if (newLogMode == 0) {
-					var h = opt.text.match(/^(.*) - starting cards:/);
-					if (h) newLogNames[h[1]] = ++newLogPlayers;
+						var h = opt.text.match(/^(.*) - starting cards:/);
+						if (h) {
+							newLogNames[h[1]] = ++newLogPlayers;
+							decks[h[1]] = {};
+							points[h[1]] = {};
+						}
 			    }
-			    var h;
+			    var h, card;
 			    if (h = opt.text.match(/^(.*)( - .*)$/)) {
-					newLogText += '<span class="p'+newLogNames[h[1]]+'">'+h[1]+'</span>' + colorize(h[2]) + '</br>';
+						newLogText += '<span class="p'+newLogNames[h[1]]+'">'+h[1]+'</span>' + colorize(h[2]) + '</br>';
+
+						//track deck
+						if(opt.text.match(/gains/)){
+							card = h[2].substring(9);
+							decks[h[1]][card] = (decks[h[1]][card] || 0) + 1;
+						}
+						else if(opt.text.match(/trashes/)){
+							card = h[2].substring(11);
+							decks[h[1]][card] = (decks[h[1]][card] || 1) - 1;
+						}
+
+						updatePoints();
 				} 
 				else if (newLogMode == 0 && (h = opt.text.match(/^(Supply cards:)(.*)/))) {
 					newLogText += h[1] + colorize(h[2]) + '</br>';
@@ -197,7 +225,7 @@ $(document).ready(function() { var hook = function() {
 	'Bag of Gold':'action',
 	'Fool\'s Gold':'treasure-reaction',
 	'Gold':'treasure',
-	'Overgrown Estate':'shelter-victory',
+	'Overgrown Estate':'shelter-victory', 
 	'Estate':'victory',
 	'Counting House':'action',
 	'Count':'action',
@@ -384,8 +412,8 @@ $(document).ready(function() { var hook = function() {
 	'Venture':'treasure',
 	'Colony':'victory',
 	'Duchy':'victory',
-	'Duke':'victory',
-	'Fairgrounds':'victory',
+	'Duke':'victory', 
+	'Fairgrounds':'victory', 
 	'Farmland':'victory',
 	'Feodum':'victory',
 	'Gardens':'victory',
@@ -411,6 +439,73 @@ $(document).ready(function() { var hook = function() {
 	'Tunnel':'victory-reaction',
 	'victory point chips':'vp-chip',
 	'Curse':'curse',
+	}
+
+	function updatePoints(){
+		var $newPoints = $('<div class="rc-points"></div>');
+
+		_(points).chain()
+			.keys()
+			.each(function(player){
+
+				var pts = 0,
+					deck = decks[player],
+					cardCount,
+					victoryCount,
+					actionCount;
+
+				//first, do basic victory points
+				pts += 1 * (deck['Estate'] || 0);
+				pts += 3 * (deck['Duchy'] || 0);
+				pts += 6 * (deck['Province'] || 0);
+				pts += 10 * (deck['Colony'] || 0);
+				pts += 2 * (deck['Farmland'] || 0);
+				pts += 2 * (deck['Dame Josephine'] || 0);
+				pts += 1 * (deck['Great Hall'] || 0);
+				pts += 2 * (deck['Island'] || 0);
+				pts += 2 * (deck['Harem'] || 0);
+				pts += 2 * (deck['Tunnel'] || 0);
+				pts += (deck['victory point chips'] || 0);
+
+				//curses
+				pts += -1 * (deck['Curse'] || 0);
+
+				//duke
+				pts += (deck['Duke'] * deck['Duchy'] || 0);
+
+				//feodum
+				pts += (deck['Feodum'] * Math.floor(deck['Silver']/ 3) || 0);
+
+				//fairgrounds
+				pts += (deck['Fairgrounds'] * 2 * Math.floor(_(deck).keys().length / 5) || 0);
+
+
+				//Gardens (1 for every 10 cards in deck)
+				//Silk road (1 for every 4 victory cards in deck)
+				//Vineyard (1 for every 3 action cards)
+				_(deck).chain()
+					.keys()
+					.each(function(card){
+						cardCount += deck[card];
+
+						if(types[card].indexOf('victory') >= 0){
+							victoryCount += deck[card];
+						}
+
+						if(types[card].indexOf('action') >= 0){
+							actionCount += deck[card];
+						}
+					})
+
+				pts += (deck['Gardens'] * Math.floor(cardCount / 10) || 0);
+				pts += (deck['Silk Road'] * Math.floor(victoryCount / 4) || 0);
+				pts += (deck['Vineyard'] * Math.floor(actionCount / 3) || 0);
+
+				points[player] = pts;
+				$newPoints.append('<span class="rc-player">' + player + '</span>: ' + points[player]);
+			});
+
+		$pointTracker.html($newPoints);
 	}
 
 	var cards = Object.keys(types);

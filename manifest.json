@@ -1,9 +1,9 @@
 {
    "content_scripts": [
      {
-       "js": ["jquery.js", "Goko_Live_Log_Viewer.user.js"],
+       "js": ["jquery.js", "underscore-min.js", "Goko_Live_Log_Viewer.user.js"],
        "run_at": "document_start",
-       "css": [],
+       "css": ["point-tracker.css"],
        "matches": [
          "http://play.goko.com/Dominion/gameClient.html",
          "https://play.goko.com/Dominion/gameClient.html",
