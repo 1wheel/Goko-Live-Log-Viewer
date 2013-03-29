@@ -54,7 +54,10 @@ $(document).ready(function() { var hook = function() {
 						var h = opt.text.match(/^(.*) - starting cards:/);
 						if (h) {
 							newLogNames[h[1]] = ++newLogPlayers;
-							decks[h[1]] = {};
+							//should probably deal with ruins.. but eh......
+							decks[h[1]] = {
+								'Estate': 3
+							};
 							points[h[1]] = {};
 						}
 			    }
