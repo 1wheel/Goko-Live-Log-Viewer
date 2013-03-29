@@ -56,7 +56,8 @@ $(document).ready(function() { var hook = function() {
 							newLogNames[h[1]] = ++newLogPlayers;
 							//should probably deal with ruins.. but eh......
 							decks[h[1]] = {
-								'Estate': 3
+								'Estate': 3,
+								'Copper': 7
 							};
 							points[h[1]] = {};
 						}
@@ -487,10 +488,15 @@ $(document).ready(function() { var hook = function() {
 					//Gardens (1 for every 10 cards in deck)
 					//Silk road (1 for every 4 victory cards in deck)
 					//Vineyard (1 for every 3 action cards)
+					console.group("Counting deck for " + player);
+					cardCount = 0, victoryCount = 0, actionCount = 0;
+					
 					_(deck).chain()
 						.keys()
 						.each(function(card){
-							cardCount += deck[card];
+							console.log(card, deck[card]);
+
+							cardCount += (deck[card] || 0);
 
 							if(types[card].indexOf('victory') >= 0){
 								victoryCount += deck[card];
@@ -499,7 +505,10 @@ $(document).ready(function() { var hook = function() {
 							if(types[card].indexOf('action') >= 0){
 								actionCount += deck[card];
 							}
-						})
+						});
+
+					console.groupEnd();
+					console.log(cardCount, victoryCount, actionCount);
 
 					pts += (deck['Gardens'] * Math.floor(cardCount / 10) || 0);
 					pts += (deck['Silk Road'] * Math.floor(victoryCount / 4) || 0);
