@@ -442,70 +442,76 @@ $(document).ready(function() { var hook = function() {
 	}
 
 	function updatePoints(){
-		var $newPoints = $('<div class="rc-points"></div>');
+		try{
+			var $newPoints = $('<div class="rc-points"></div>');
 
-		_(points).chain()
-			.keys()
-			.each(function(player){
+			_(points).chain()
+				.keys()
+				.each(function(player){
 
-				var pts = 0,
-					deck = decks[player],
-					cardCount,
-					victoryCount,
-					actionCount;
+					var pts = 0,
+						deck = decks[player],
+						cardCount,
+						victoryCount,
+						actionCount;
 
-				//first, do basic victory points
-				pts += 1 * (deck['Estate'] || 0);
-				pts += 3 * (deck['Duchy'] || 0);
-				pts += 6 * (deck['Province'] || 0);
-				pts += 10 * (deck['Colony'] || 0);
-				pts += 2 * (deck['Farmland'] || 0);
-				pts += 2 * (deck['Dame Josephine'] || 0);
-				pts += 1 * (deck['Great Hall'] || 0);
-				pts += 2 * (deck['Island'] || 0);
-				pts += 2 * (deck['Harem'] || 0);
-				pts += 2 * (deck['Tunnel'] || 0);
-				pts += (deck['victory point chips'] || 0);
+					//first, do basic victory points
+					pts += 1 * (deck['Estate'] || 0);
+					pts += 3 * (deck['Duchy'] || 0);
+					pts += 6 * (deck['Province'] || 0);
+					pts += 10 * (deck['Colony'] || 0);
+					pts += 2 * (deck['Farmland'] || 0);
+					pts += 2 * (deck['Dame Josephine'] || 0);
+					pts += 1 * (deck['Great Hall'] || 0);
+					pts += 2 * (deck['Island'] || 0);
+					pts += 2 * (deck['Harem'] || 0);
+					pts += 2 * (deck['Tunnel'] || 0);
+					pts += (deck['victory point chips'] || 0);
 
-				//curses
-				pts += -1 * (deck['Curse'] || 0);
+					//curses
+					pts += -1 * (deck['Curse'] || 0);
 
-				//duke
-				pts += (deck['Duke'] * deck['Duchy'] || 0);
+					//duke
+					pts += (deck['Duke'] * deck['Duchy'] || 0);
 
-				//feodum
-				pts += (deck['Feodum'] * Math.floor(deck['Silver']/ 3) || 0);
+					//feodum
+					pts += (deck['Feodum'] * Math.floor(deck['Silver']/ 3) || 0);
 
-				//fairgrounds
-				pts += (deck['Fairgrounds'] * 2 * Math.floor(_(deck).keys().length / 5) || 0);
+					//fairgrounds
+					pts += (deck['Fairgrounds'] * 2 * Math.floor(_(deck).keys().length / 5) || 0);
 
 
-				//Gardens (1 for every 10 cards in deck)
-				//Silk road (1 for every 4 victory cards in deck)
-				//Vineyard (1 for every 3 action cards)
-				_(deck).chain()
-					.keys()
-					.each(function(card){
-						cardCount += deck[card];
+					//Gardens (1 for every 10 cards in deck)
+					//Silk road (1 for every 4 victory cards in deck)
+					//Vineyard (1 for every 3 action cards)
+					_(deck).chain()
+						.keys()
+						.each(function(card){
+							cardCount += deck[card];
 
-						if(types[card].indexOf('victory') >= 0){
-							victoryCount += deck[card];
-						}
+							if(types[card].indexOf('victory') >= 0){
+								victoryCount += deck[card];
+							}
 
-						if(types[card].indexOf('action') >= 0){
-							actionCount += deck[card];
-						}
-					})
+							if(types[card].indexOf('action') >= 0){
+								actionCount += deck[card];
+							}
+						})
 
-				pts += (deck['Gardens'] * Math.floor(cardCount / 10) || 0);
-				pts += (deck['Silk Road'] * Math.floor(victoryCount / 4) || 0);
-				pts += (deck['Vineyard'] * Math.floor(actionCount / 3) || 0);
+					pts += (deck['Gardens'] * Math.floor(cardCount / 10) || 0);
+					pts += (deck['Silk Road'] * Math.floor(victoryCount / 4) || 0);
+					pts += (deck['Vineyard'] * Math.floor(actionCount / 3) || 0);
 
-				points[player] = pts;
-				$newPoints.append('<span class="rc-player">' + player + '</span>: ' + points[player]);
-			});
+					points[player] = pts;
+					$newPoints.append('<span class="rc-player">' + player + '</span>: ' + points[player]);
+				});
 
-		$pointTracker.html($newPoints);
+			$pointTracker.html($newPoints);
+		}
+		catch(e){
+			console.error("Something went wrong with your point tracker", e);
+		}
+		
 	}
 
 	var cards = Object.keys(types);
