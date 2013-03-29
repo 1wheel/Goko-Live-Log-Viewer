@@ -1,0 +1,21 @@
+#rc-point-tracker{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  bottom:0;
+  height:50px;
+  background:black;
+  text-align:center;
+  font-size:16px;
+  color:lime;
+  font-family:Helvetica;
+  font-weight:bold;
+}
+
+.rc-player{
+  margin-left:30px;
+  margin-right:5px;
+  color:cyan;
+  font-weight:normal;
+}
